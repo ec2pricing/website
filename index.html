@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>AWS EC2 Pricing</title>
+
+    <meta charset="UTF-8">
+    <link type="text/plain" href="https://github.com/olifolkerd/tabulator/raw/master/dist/css/tabulator.min.css"
+        rel="stylesheet">
+    <script type="text/plain"
+        src="https://github.com/olifolkerd/tabulator/raw/master/dist/js/tabulator.min.js"></script>
+    <script type="text/javascript" src=''></script>
+
+</head>
+
+<body>
+    <div id="table"></div>
+
+    <script>
+        async function main() {
+            const sqlPromise = initSqlJs({
+                locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.1/${file}`
+            });
+            const dataPromise = fetch("https://raw.githubusercontent.com/ec2pricing/aws-ec2-pricing/main/examples/prices.db").then(res => res.arrayBuffer());
+            const [SQL, buf] = await Promise.all([sqlPromise, dataPromise])
+            const db = new SQL.Database(new Uint8Array(buf));
+
+            console.log("Database initialized");
+
+            const resultSets = db.exec("SELECT * FROM prices WHERE region = 'EU (Ireland)' ANd arch = 'arm' ORDER BY monthly ASC");
+            const resultSet = resultSets[0];  // {columns:['a','b'], values:[[0,'hello'],[1,'world']]}
+            const columns = resultSet.columns;
+            const rows = resultSet.values;
+
+            let tableData = [];
+            for (let i = 0; i < rows.length; i++) {
+                v = rows[i];
+                k = 0;
+                row = {
+                    family: v[k++],
+                    type: v[k++],
+                    size: v[k++],
+                    burst: v[k++],
+                    base: v[k++],
+                    processor: v[k++],
+                    bit: v[k++],
+                    arch: v[k++],
+                    tenancy: v[k++],
+                    region: v[k++],
+                    vcpu: v[k++],
+                    memory: v[k++],
+                    storage: v[k++],
+                    os: v[k++],
+                    norm: v[k++],
+                    speed: v[k++],
+                    actual: v[k++],
+                    network: v[k++],
+                    gen: v[k++],
+                    cur: v[k++],
+                    hourly: v[k++],
+                    monthly: v[k++],
+                    starting: v[k++]
+                };
+                tableData.push(row);
+            }
+
+            var table = new Tabulator("#table", {
+                data: tableData,           //load row data from array
+                layout: "fitColumns",      //fit columns to width of table
+                // responsiveLayout: "hide",  //hide columns that dont fit on the table
+                tooltips: true,            //show tool tips on cells
+                // addRowPos: "top",          //when adding a new row, add it to the top of the table
+                // history: true,             //allow undo and redo actions on the table
+                pagination: "local",       //paginate the data
+                paginationSize: 50,         //allow 7 rows per page of data
+                movableColumns: true,      //allow column order to be changed
+                resizableRows: false,       //allow row order to be changed
+                initialSort: [             //set the initial sort order of the data
+                    { column: "monthly", dir: "asc" },
+                ],
+                columns: [
+                    { title: "Family", field: "family" },
+                    { title: "Type", field: "type" },
+                    { title: "Size", field: "size" },
+                    { title: "Burstable", field: "burst" },
+                    { title: "Baseline", field: "base" },
+                    { title: "CPU Model", field: "processor" },
+                    { title: "Bits", field: "bit" },
+                    { title: "Instruction Set", field: "arch" },
+                    { title: "Tenancy", field: "tenancy" },
+                    { title: "Region", field: "region" },
+                    { title: "vCPU", field: "vcpu" },
+                    { title: "Memory", field: "memory" },
+                    { title: "Storage", field: "storage" },
+                    { title: "OS", field: "os" },
+                    { title: "NormScale", field: "norm" },
+                    { title: "Clock Speed", field: "speed" },
+                    { title: "Actual Speed", field: "actual" },
+                    { title: "Network Speed", field: "network" },
+                    { title: "Current Generation", field: "gen" },
+                    { title: "Currency", field: "cur" },
+                    { title: "Hourly", field: "hourly" },
+                    { title: "Monthly", field: "monthly" },
+                    { title: "Offer Date", field: "starting" }
+                ],
+                //     columns: [                 //define the table columns
+                //         { title: "Family", field: "family" },
+                //         { title: "Task Progress", field: "progress", hozAlign: "left", formatter: "progress", editor: true },
+                //         { title: "Gender", field: "gender", width: 95, editor: "select", editorParams: { values: ["male", "female"] } },
+                //         { title: "Rating", field: "rating", formatter: "star", hozAlign: "center", width: 100, editor: true },
+                //         { title: "Color", field: "col", width: 130, editor: "input" },
+                //         { title: "Date Of Birth", field: "dob", width: 130, sorter: "date", hozAlign: "center" },
+                //         { title: "Driver", field: "car", width: 90, hozAlign: "center", formatter: "tickCross", sorter: "boolean", editor: true },
+                //     ],
+            });
+        }
+        main();
+    </script>
+</body>
+
+</html>
